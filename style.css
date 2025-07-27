@@ -1,0 +1,10 @@
+html {
+    font-family: 'Courier New';
+    line-height: 0.63;
+    overflow: hidden;
+    cursor: none;
+    white-space: nowrap;
+}
+body {
+    margin: 0;
+}
