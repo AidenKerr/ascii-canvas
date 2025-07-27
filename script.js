@@ -1,4 +1,4 @@
-const COLUMNS = 80;
+let columns = 90;
 let rows;
 let mouseCoords = { x: null, y: null };
 let fontSize = 0;
@@ -16,21 +16,32 @@ const banner = {
     offset: { x: 2, y: 2 },
 };
 
+function init() {
+    window.onresize = handleResize;
+    handleResize();
+
+    document.onmousemove = handleMouseMove;
+    document.onclick = handleClick;
+}
+init();
+
 function getFontSizeAndSetRows() {
     const width = window.innerWidth;
     const height = window.innerHeight;
-    fontSize = (width / COLUMNS) * 2;
+    fontSize = (width / columns) * 2;
     rows = Math.floor((height * 2) / fontSize);
 }
 
 function handleResize() {
+    columns = 90;
+    if (window.innerWidth < 900) {
+        columns = 60;
+    }
+    if (window.innerWidth < 700) {
+        columns = 30;
+    }
     drawScreen();
 }
-window.onresize = handleResize;
-handleResize();
-
-document.onmousemove = handleMouseMove;
-document.onclick = handleClick;
 
 function handleClick(e) {
     if (withinBounds(mouseCoords.x, mouseCoords.y, banner)) {
@@ -64,7 +75,7 @@ function drawScreen() {
     body.style.fontSize = `${fontSize}px`;
     let bodyText = '';
     for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < COLUMNS; x++) {
+        for (let x = 0; x < columns; x++) {
             let char = '.';
 
             const inBounds = withinBounds(x, y, banner);
