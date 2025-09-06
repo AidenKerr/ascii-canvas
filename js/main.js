@@ -1,10 +1,5 @@
 import { WorldObject } from './WorldObject.js';
 
-let columns = 90;
-let rows;
-let mouseCoords = { x: null, y: null };
-let fontSize = 0;
-
 const banner = {
     art: [
         String.raw`//================\\`,
@@ -17,89 +12,101 @@ const banner = {
     ],
     offset: { x: 2, y: 2 },
 };
+let sign = new WorldObject(banner.offset, banner.art);
 
-function init() {
-    window.onresize = handleResize;
-    handleResize();
+// TODO:
+// Efficiently map ranges to values.... Look into partitioning / quad tree algorithms...
+// Then, we can do drawScreen cheaply with many signs
+// I think this means withinBounds will no longer be a WorldObject method though
+// We might be able to be clever about skipping some rows if there's no signs etc
 
-    document.onmousemove = handleMouseMove;
-    document.onclick = handleClick;
-}
-init();
+// additionally, we can have two arts per worldobject - one for regular and one for hover, and swap them when necessary
 
-function getFontSizeAndSetRows() {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    fontSize = (width / columns) * 2;
-    rows = Math.floor((height * 2) / fontSize);
-}
+class World {
+    constructor() {
+        this.columns = 90;
+        this.rows;
+        this.mouseCoords = { x: null, y: null };
+        this.fontSize = 0;
 
-function handleResize() {
-    columns = 90;
-    if (window.innerWidth < 900) {
-        columns = 60;
+        this.initializeHandlers();
     }
-    if (window.innerWidth < 700) {
-        columns = 30;
+
+    initializeHandlers() {
+        window.onresize = this.handleResize;
+        document.onmousemove = this.handleMouseMove;
+        document.onclick = this.handleClick;
+        this.handleResize();
     }
-    drawScreen();
-}
 
-function handleClick(e) {
-    if (withinBounds(mouseCoords.x, mouseCoords.y, banner)) {
-        window.open('https://aidenkerr.com');
-    }
-}
-
-function handleMouseMove(e) {
-    const x = e.pageX;
-    const y = e.pageY;
-    calculateMouseCoord(x, y);
-    drawScreen();
-}
-
-function calculateMouseCoord(x, y) {
-    const col = Math.floor((x / fontSize) * 1.66);
-    const row = Math.floor((y / (fontSize / 2)) * 0.8);
-    mouseCoords = { x: col, y: row };
-}
-
-function withinBounds(x, y, banner) {
-    const inX =
-        x >= banner.offset.x && x < banner.offset.x + banner.art[0].length;
-    const inY = y >= banner.offset.y && y < banner.offset.y + banner.art.length;
-    return inX && inY;
-}
-
-function drawScreen() {
-    getFontSizeAndSetRows();
-    const body = document.body;
-    body.style.fontSize = `${fontSize}px`;
-    let bodyText = '';
-    for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < columns; x++) {
-            let char = '.';
-
-            const inBounds = withinBounds(x, y, banner);
-            const isMouse = mouseCoords.x == x && mouseCoords.y == y;
-
-            if (inBounds && isMouse) {
-                char = 'X';
-            } else if (inBounds) {
-                const bannerChar = banner.art[y - banner.offset.y].charAt(
-                    x - banner.offset.x
-                );
-                char = bannerChar;
-            } else if (isMouse) {
-                char = 'O';
-            }
-            bodyText += char;
+    handleResize = () => {
+        this.columns = 90;
+        if (window.innerWidth < 900) {
+            this.columns = 60;
         }
-        bodyText += '</br>';
+        if (window.innerWidth < 700) {
+            this.columns = 30;
+        }
+        this.getFontSizeAndSetRows();
+        this.drawScreen();
+    };
+
+    getFontSizeAndSetRows() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        this.fontSize = (width / this.columns) * 2;
+        this.rows = Math.floor((height * 2) / this.fontSize);
     }
 
-    body.innerHTML = bodyText;
-}
+    handleClick = (e) => {
+        if (sign.withinBounds(this.mouseCoords.x, this.mouseCoords.y)) {
+            window.open('https://aidenkerr.com');
+        }
+    };
 
-let aa = new WorldObject();
-aa.hello();
+    handleMouseMove = (e) => {
+        const x = e.pageX;
+        const y = e.pageY;
+        this.calculateMouseCoord(x, y);
+        this.drawScreen();
+    };
+
+    calculateMouseCoord(x, y) {
+        const col = Math.floor((x / this.fontSize) * 1.66);
+        const row = Math.floor((y / (this.fontSize / 2)) * 0.8);
+        this.mouseCoords = { x: col, y: row };
+    }
+
+    drawScreen() {
+        this.getFontSizeAndSetRows();
+        const body = document.body;
+        body.style.fontSize = `${this.fontSize}px`;
+        let bodyText = [];
+        for (let y = 0; y < this.rows; y++) {
+            for (let x = 0; x < this.columns; x++) {
+                let char = '.';
+
+                const inBounds = sign.withinBounds(x, y);
+
+                const isMouse =
+                    this.mouseCoords.x == x && this.mouseCoords.y == y;
+
+                if (inBounds && isMouse) {
+                    char = 'X';
+                } else if (inBounds) {
+                    const bannerChar = banner.art[y - banner.offset.y].charAt(
+                        x - banner.offset.x
+                    );
+                    char = bannerChar;
+                } else if (isMouse) {
+                    char = 'O';
+                }
+                bodyText.push(char);
+            }
+            bodyText.push('</br>');
+        }
+
+        body.innerHTML = bodyText.join('');
+    }
+}
+new World();
