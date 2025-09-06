@@ -1,3 +1,5 @@
+import { WorldObject } from './WorldObject.js';
+
 let columns = 90;
 let rows;
 let mouseCoords = { x: null, y: null };
@@ -98,3 +100,6 @@ function drawScreen() {
 
     body.innerHTML = bodyText;
 }
+
+let aa = new WorldObject();
+aa.hello();
